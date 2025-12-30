@@ -12,10 +12,14 @@ return new class extends Migration {
         Schema::create('field_presets', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
-            $table->text('description')->nullable();
-            $table->jsonb('fields')->nullable();
-            $table->integer('sorting')->default(500);
+            $table->string('slug')
+	            ->unique();
+            $table->text('description')
+	            ->nullable();
+            $table->jsonb('fields')
+	            ->nullable();
+            $table->integer('sorting')
+	            ->default(500);
             $table->timestamps();
         });
     }

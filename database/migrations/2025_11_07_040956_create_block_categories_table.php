@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Reker7\MoonShineBlocks\Models\Block;
+use Reker7\MoonShineBlocksCore\Models\Block;
 
 return new class extends Migration {
     public function up(): void
