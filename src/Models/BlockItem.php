@@ -19,15 +19,28 @@ class BlockItem extends Model
         'slug',
         'is_active',
         'data',
-        'published_at',
+        'content',
         'sorting',
     ];
 
-    protected $casts = [
-        'data' => 'array',
-        'is_active' => 'bool',
-        'sorting' => 'int',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        $casts = [
+            'data' => 'array',
+            'is_active' => 'bool',
+            'sorting' => 'int',
+        ];
+
+        // Dynamic cast for content column from config
+        $contentCast = config('moonshine-blocks.content.cast');
+
+        $casts['content'] = (is_string($contentCast) && class_exists($contentCast)) ? $contentCast : 'array';
+
+        return $casts;
+    }
 
     public function block(): BelongsTo
     {

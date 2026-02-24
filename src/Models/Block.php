@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Reker7\MoonShineBlocksCore\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Reker7\MoonShineFieldsBuilder\Fields\FieldsBuilder\FieldsCollection;
 
 class Block extends Model
 {
+    use SoftDeletes;
+
     /**
      * Get the route key for the model.
      */
@@ -65,135 +68,24 @@ class Block extends Model
         return $this->belongsTo(BlockGroup::class);
     }
 
-    /**
-     * Field presets attached to this block
-     */
-    public function fieldPresets(): BelongsToMany
-    {
-        return $this->belongsToMany(FieldPreset::class, 'block_field_preset')
-            ->withPivot('sorting')
-            ->withTimestamps()
-            ->orderByPivot('sorting');
-    }
-
-    /**
-     * Get all fields merged: presets + block custom fields
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function getMergedFields(): array
-    {
-        $fields = [];
-
-        // Add fields from presets (in order)
-        foreach ($this->fieldPresets as $preset) {
-            $presetFields = $preset->fields;
-
-            // Handle string JSON or null
-            if (is_string($presetFields)) {
-                $presetFields = json_decode($presetFields, true) ?: [];
-            }
-            if (!is_array($presetFields)) {
-                $presetFields = [];
-            }
-
-            foreach ($presetFields as $field) {
-                $fields[] = $field;
-            }
-        }
-
-        // Add block's own custom fields
-        $customFields = $this->fields;
-
-        // Handle string JSON or null
-        if (is_string($customFields)) {
-            $customFields = json_decode($customFields, true) ?: [];
-        }
-        if (!is_array($customFields)) {
-            $customFields = [];
-        }
-
-        foreach ($customFields as $field) {
-            $fields[] = $field;
-        }
-
-        return $fields;
-    }
-
-    /**
-     * Get merged fields as FieldsCollection
-     */
-    public function getMergedFieldsCollection(): FieldsCollection
-    {
-        return FieldsCollection::fromMixed($this->getMergedFields());
-    }
-
-    /**
-     * Get fields grouped by preset (for fieldset wrapping)
-     *
-     * @return array<int, array{name: string|null, fields: array}>
-     */
-    public function getGroupedFields(): array
-    {
-        $groups = [];
-
-        // Add fields from presets (each as a separate group)
-        foreach ($this->fieldPresets as $preset) {
-            $presetFields = $preset->fields;
-
-            if (is_string($presetFields)) {
-                $presetFields = json_decode($presetFields, true) ?: [];
-            }
-            if (!is_array($presetFields)) {
-                $presetFields = [];
-            }
-
-            if (!empty($presetFields)) {
-                $groups[] = [
-                    'name' => $preset->name,
-                    'fields' => $presetFields,
-                ];
-            }
-        }
-
-        // Add block's own custom fields (without group name)
-        $customFields = $this->fields;
-
-        if (is_string($customFields)) {
-            $customFields = json_decode($customFields, true) ?: [];
-        }
-        if (!is_array($customFields)) {
-            $customFields = [];
-        }
-
-        if (!empty($customFields)) {
-            $groups[] = [
-                'name' => null, // No fieldset wrapper for custom fields
-                'fields' => $customFields,
-            ];
-        }
-
-        return $groups;
-    }
-
-    public function scopeEffectiveActive($q)
+    public function scopeEffectiveActive(Builder $q): Builder
     {
         return $q->where('is_active', true)
-            ->where(function ($qq) {
+            ->where(function (Builder $qq): void {
                 $qq->whereNull('block_group_id')
-                    ->orWhereHas('blockGroup', fn ($g) => $g->where('is_active', true));
+                    ->orWhereHas('blockGroup', fn (Builder $g) => $g->where('is_active', true));
             });
     }
 
-    public function scopeInGroupSlug($q, ?string $slug)
+    public function scopeInGroupSlug(Builder $q, ?string $slug): Builder
     {
         if (! $slug) {
             return $q;
         }
-        return $q->whereHas('blockGroup', fn ($g) => $g->where('slug', $slug));
+        return $q->whereHas('blockGroup', fn (Builder $g) => $g->where('slug', $slug));
     }
 
-    public function scopeWithoutGroup($q)
+    public function scopeWithoutGroup(Builder $q): Builder
     {
         return $q->whereNull('block_group_id');
     }

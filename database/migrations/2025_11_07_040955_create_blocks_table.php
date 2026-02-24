@@ -30,7 +30,7 @@ return new class extends Migration {
             $table->boolean('is_api_enabled')
                 ->default(true);
 
-            $table->jsonb('fields')
+            $table->json('fields')
                 ->nullable();
 
             $table->integer('sorting')

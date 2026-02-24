@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reker7\MoonShineBlocksCore\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,17 +20,20 @@ class BlockGroup extends Model
         'sorting',
     ];
 
-    protected $casts = [
-        'is_active' => 'bool',
-        'sorting' => 'int',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'bool',
+            'sorting' => 'int',
+        ];
+    }
 
     public function blocks(): HasMany
     {
         return $this->hasMany(Block::class);
     }
 
-    public function scopeActive($q)
+    public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true);
     }
