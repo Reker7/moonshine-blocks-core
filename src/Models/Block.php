@@ -28,6 +28,7 @@ class Block extends Model
         'name',
         'is_active',
         'is_multiple',
+        'has_categories',
         'is_api_enabled',
         'sorting',
         'fields',
@@ -39,6 +40,7 @@ class Block extends Model
         return [
             'is_active' => 'boolean',
             'is_multiple' => 'boolean',
+            'has_categories' => 'boolean',
             'is_api_enabled' => 'boolean',
             'fields' => 'array',
         ];
